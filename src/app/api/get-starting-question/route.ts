@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { language } = body;
 
-    if (!language || (language !== "en" && language !== "l1")) {
+    if (!language) {
       return NextResponse.json({ error: "Invalid language" }, { status: 400 });
     }
 

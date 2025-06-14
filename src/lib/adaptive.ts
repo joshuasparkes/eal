@@ -13,7 +13,7 @@ export async function selectNextQuestion(
 }
 
 export async function getRandomQuestion(
-  language: "en" | "l1",
+  language: string,
   targetDifficulty: number,
   usedQuestionIds: string[] = []
 ): Promise<Question | null> {
@@ -22,6 +22,7 @@ export async function getRandomQuestion(
     const snapshot = await questionsRef.where("language", "==", language).get();
 
     if (snapshot.empty) {
+      console.log(`No questions found for language: ${language}`);
       return null;
     }
 
@@ -70,7 +71,7 @@ function findNearestDifficultyRandom(
 }
 
 export async function getStartingQuestion(
-  language: "en" | "l1"
+  language: string
 ): Promise<Question | null> {
   return await getRandomQuestion(language, 2.5, []);
 }

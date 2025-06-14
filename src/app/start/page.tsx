@@ -7,12 +7,21 @@ import { Question, Student, Attempt } from "@/types";
 
 type AssessmentPhase = "entry" | "english" | "l1" | "completed";
 
+interface AvailableLanguage {
+  code: string;
+  name: string;
+}
+
 export default function StartPage() {
   const [phase, setPhase] = useState<AssessmentPhase>("entry");
   const [sessionCode, setSessionCode] = useState("");
   const [studentName, setStudentName] = useState("");
   const [yearGroup, setYearGroup] = useState("");
   const [homeLanguage, setHomeLanguage] = useState("");
+  const [availableLanguages, setAvailableLanguages] = useState<
+    AvailableLanguage[]
+  >([]);
+  const [loadingLanguages, setLoadingLanguages] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [studentId, setStudentId] = useState<string>("");
   const [attemptId, setAttemptId] = useState<string>("");
@@ -22,6 +31,27 @@ export default function StartPage() {
   const [englishCount, setEnglishCount] = useState(0);
   const [l1Count, setL1Count] = useState(0);
   const [finalResult, setFinalResult] = useState<any>(null);
+
+  // Load available languages on component mount
+  useEffect(() => {
+    loadAvailableLanguages();
+  }, []);
+
+  const loadAvailableLanguages = async () => {
+    try {
+      const response = await fetch("/api/available-languages");
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableLanguages(data.languages);
+      } else {
+        console.error("Failed to load available languages");
+      }
+    } catch (error) {
+      console.error("Error loading available languages:", error);
+    } finally {
+      setLoadingLanguages(false);
+    }
+  };
 
   const startAssessment = async () => {
     if (!sessionCode || !studentName || !yearGroup || !homeLanguage) {
@@ -174,14 +204,14 @@ export default function StartPage() {
 
   if (phase === "entry") {
     return (
-      <div className="min-h-screen text-black bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center p-4">
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Start Assessment
             </h1>
 
-            <div className="space-y-4">
+            <div className="space-y-4 text-black">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Session Code
@@ -197,7 +227,7 @@ export default function StartPage() {
               </div>
 
               <div>
-                <label className="block text-black text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Your Name
                 </label>
                 <input
@@ -231,18 +261,41 @@ export default function StartPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Home Language
                 </label>
-                <input
-                  type="text"
-                  value={homeLanguage}
-                  onChange={(e) => setHomeLanguage(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="e.g., Spanish, Arabic, Polish"
-                />
+                {loadingLanguages ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                    Loading available languages...
+                  </div>
+                ) : (
+                  <select
+                    value={homeLanguage}
+                    onChange={(e) => setHomeLanguage(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Select your home language</option>
+                    {availableLanguages.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {!loadingLanguages && availableLanguages.length === 0 && (
+                  <p className="text-sm text-red-600 mt-1">
+                    No home language questions available. Please contact your
+                    teacher.
+                  </p>
+                )}
               </div>
 
               <button
                 onClick={startAssessment}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  !sessionCode ||
+                  !studentName ||
+                  !yearGroup ||
+                  !homeLanguage
+                }
                 className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Starting Assessment..." : "Begin Assessment"}

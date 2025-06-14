@@ -8,7 +8,7 @@ export interface Student {
 
 export interface Question {
   id?: string;
-  language: "en" | "l1";
+  language: string;
   text: string;
   choices: string[];
   correctIdx: number;

@@ -1,6 +1,9 @@
 const admin = require("firebase-admin");
 const path = require("path");
 
+// Load environment variables from .env.local
+require("dotenv").config({ path: ".env.local" });
+
 // Initialize Firebase Admin
 if (!admin.apps.length) {
   let serviceAccount;
@@ -13,26 +16,15 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     };
   } else {
-    // Fallback to the service account file in project root
-    try {
-      serviceAccount = require(path.resolve(
-        process.cwd(),
-        "firebase-service-account.json"
-      ));
-    } catch (error) {
-      console.error(
-        "Firebase service account file not found. Please check your configuration."
-      );
-      throw error;
-    }
+    console.error(
+      "Firebase environment variables not found. Please check your .env.local file."
+    );
+    process.exit(1);
   }
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    projectId:
-      process.env.FIREBASE_PROJECT_ID ||
-      serviceAccount.project_id ||
-      "eal-project",
+    projectId: process.env.FIREBASE_PROJECT_ID,
   });
 }
 
@@ -238,7 +230,7 @@ const englishQuestions = [
 const l1Questions = [
   // Spanish questions
   {
-    language: "l1",
+    language: "spanish",
     text: "¿Cuál es la idea principal del texto sobre la escuela?",
     choices: [
       "La importancia de la educación",
@@ -251,7 +243,7 @@ const l1Questions = [
     skillTag: "comprensión",
   },
   {
-    language: "l1",
+    language: "spanish",
     text: 'El antónimo de "caliente" es:',
     choices: ["frío", "lento", "dulce", "seco"],
     correctIdx: 0,
@@ -259,7 +251,7 @@ const l1Questions = [
     skillTag: "vocabulario",
   },
   {
-    language: "l1",
+    language: "spanish",
     text: "Si Juan lleva paraguas y el cielo está gris, ¿qué tiempo espera?",
     choices: ["lluvia", "viento", "nieve", "sol"],
     correctIdx: 0,
@@ -269,32 +261,69 @@ const l1Questions = [
 
   // French questions
   {
-    language: "l1",
-    text: "Qu'est-ce que l'auteur veut dire dans le dernier paragraphe?",
+    language: "french",
+    text: "Quelle est l'idée principale de ce texte?",
     choices: [
-      "Il faut agir maintenant",
-      "C'est trop tard",
-      "Tout va bien",
-      "Il ne sait pas",
+      "L'importance de l'éducation",
+      "Les problèmes de transport",
+      "L'histoire de la ville",
+      "Les traditions familiales",
     ],
     correctIdx: 0,
-    difficulty: 3.0,
+    difficulty: 2.5,
     skillTag: "compréhension",
+  },
+  {
+    language: "french",
+    text: 'Le contraire de "chaud" est:',
+    choices: ["froid", "lent", "doux", "sec"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "vocabulaire",
+  },
+  {
+    language: "french",
+    text: "Si Marie prend un parapluie et le ciel est gris, quel temps attend-elle?",
+    choices: ["pluie", "vent", "neige", "soleil"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "inférence",
   },
 
   // Arabic questions
   {
-    language: "l1",
+    language: "arabic",
     text: "ما هو الهدف الرئيسي من هذا النص؟",
-    choices: ["تقديم المعلومات", "تعليم القراءة", "شرح التاريخ", "الترفيه"],
+    choices: [
+      "تقديم المعلومات التعليمية",
+      "شرح التاريخ القديم",
+      "وصف المناظر الطبيعية",
+      "الترفيه والتسلية",
+    ],
     correctIdx: 0,
-    difficulty: 2.0,
+    difficulty: 2.5,
     skillTag: "فهم",
+  },
+  {
+    language: "arabic",
+    text: 'عكس كلمة "ساخن" هو:',
+    choices: ["بارد", "بطيء", "حلو", "جاف"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "مفردات",
+  },
+  {
+    language: "arabic",
+    text: "إذا أخذ أحمد مظلة والسماء غائمة، فماذا يتوقع؟",
+    choices: ["مطر", "رياح", "ثلج", "شمس"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "استنتاج",
   },
 
   // Polish questions
   {
-    language: "l1",
+    language: "polish",
     text: "Jaki jest główny temat tego tekstu?",
     choices: [
       "Znaczenie edukacji",
@@ -305,6 +334,22 @@ const l1Questions = [
     correctIdx: 0,
     difficulty: 2.5,
     skillTag: "rozumienie",
+  },
+  {
+    language: "polish",
+    text: 'Przeciwieństwem słowa "gorący" jest:',
+    choices: ["zimny", "wolny", "słodki", "suchy"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "słownictwo",
+  },
+  {
+    language: "polish",
+    text: "Jeśli Jan bierze parasol, a niebo jest szare, czego się spodziewa?",
+    choices: ["deszczu", "wiatru", "śniegu", "słońca"],
+    correctIdx: 0,
+    difficulty: 3.0,
+    skillTag: "wnioskowanie",
   },
 ];
 

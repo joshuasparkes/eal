@@ -243,7 +243,7 @@ export default function TeacherPage() {
                   <select
                     value={selectedTeacher}
                     onChange={(e) => setSelectedTeacher(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Choose a teacher...</option>
                     {teachers.map((teacher) => (
@@ -332,7 +332,7 @@ export default function TeacherPage() {
                   id="teacherName"
                   value={teacherName}
                   onChange={(e) => setTeacherName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your name"
                   required
                 />
