@@ -3,13 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase-client";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  getDocs,
-} from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { Student, Attempt } from "@/types";
 
 interface StudentResult {
@@ -23,59 +17,50 @@ export default function TeacherDashboard() {
   const [results, setResults] = useState<StudentResult[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchResults = async () => {
+    try {
+      const studentsSnapshot = await getDocs(collection(db, "students"));
+      const allResults: StudentResult[] = [];
+
+      for (const studentDoc of studentsSnapshot.docs) {
+        const student = { id: studentDoc.id, ...studentDoc.data() } as Student;
+
+        const attemptsQuery = query(
+          collection(db, "students", studentDoc.id, "attempts"),
+          where("sessionCode", "==", code)
+        );
+
+        const attemptsSnapshot = await getDocs(attemptsQuery);
+
+        attemptsSnapshot.docs.forEach((attemptDoc) => {
+          const attempt = {
+            id: attemptDoc.id,
+            ...attemptDoc.data(),
+          } as Attempt;
+          if (attempt.completed) {
+            allResults.push({ student, attempt });
+          }
+        });
+      }
+
+      setResults(allResults);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching results:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!code) return;
 
-    const fetchResults = async () => {
-      try {
-        const studentsSnapshot = await getDocs(collection(db, "students"));
-        const allResults: StudentResult[] = [];
-
-        for (const studentDoc of studentsSnapshot.docs) {
-          const student = {
-            id: studentDoc.id,
-            ...studentDoc.data(),
-          } as Student;
-
-          const attemptsQuery = query(
-            collection(db, "students", studentDoc.id, "attempts"),
-            where("sessionCode", "==", code)
-          );
-
-          const unsubscribe = onSnapshot(attemptsQuery, (attemptsSnapshot) => {
-            attemptsSnapshot.docs.forEach((attemptDoc) => {
-              const attempt = {
-                id: attemptDoc.id,
-                ...attemptDoc.data(),
-              } as Attempt;
-              if (attempt.completed) {
-                const existingIndex = allResults.findIndex(
-                  (r) =>
-                    r.student.id === student.id && r.attempt.id === attempt.id
-                );
-
-                if (existingIndex >= 0) {
-                  allResults[existingIndex] = { student, attempt };
-                } else {
-                  allResults.push({ student, attempt });
-                }
-
-                setResults([...allResults]);
-              }
-            });
-          });
-
-          return () => unsubscribe();
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching results:", error);
-        setLoading(false);
-      }
-    };
-
+    // Initial fetch
     fetchResults();
+
+    // Poll every 5 seconds for updates
+    const interval = setInterval(fetchResults, 5000);
+
+    return () => clearInterval(interval);
   }, [code]);
 
   const exportCSV = () => {

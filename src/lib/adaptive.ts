@@ -3,17 +3,19 @@ import { adminDb } from "./firebase";
 
 export async function selectNextQuestion(
   prev: Question,
-  wasCorrect: boolean
+  wasCorrect: boolean,
+  usedQuestionIds: string[] = []
 ): Promise<Question | null> {
   let target = prev.difficulty + (wasCorrect ? 0.5 : -0.5);
   target = Math.max(1, Math.min(5, target));
 
-  return await getRandomQuestion(prev.language, target);
+  return await getRandomQuestion(prev.language, target, usedQuestionIds);
 }
 
 export async function getRandomQuestion(
   language: "en" | "l1",
-  targetDifficulty: number
+  targetDifficulty: number,
+  usedQuestionIds: string[] = []
 ): Promise<Question | null> {
   try {
     const questionsRef = adminDb.collection("questions");
@@ -23,34 +25,54 @@ export async function getRandomQuestion(
       return null;
     }
 
-    const questions = snapshot.docs.map((doc) => ({
+    let questions = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as Question[];
 
-    const nearestQuestion = findNearestDifficulty(questions, targetDifficulty);
-    return nearestQuestion;
+    // Filter out already used questions
+    questions = questions.filter((q) => !usedQuestionIds.includes(q.id!));
+
+    // If no unused questions, reset and use all questions
+    if (questions.length === 0) {
+      questions = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Question[];
+    }
+
+    const selectedQuestion = findNearestDifficultyRandom(
+      questions,
+      targetDifficulty
+    );
+    return selectedQuestion;
   } catch (error) {
     console.error("Error fetching question:", error);
     return null;
   }
 }
 
-function findNearestDifficulty(
+function findNearestDifficultyRandom(
   questions: Question[],
   target: number
 ): Question {
-  return questions.reduce((closest, current) => {
-    const closestDiff = Math.abs(closest.difficulty - target);
-    const currentDiff = Math.abs(current.difficulty - target);
-    return currentDiff < closestDiff ? current : closest;
-  });
+  // Find all questions with the closest difficulty
+  const difficulties = questions.map((q) => Math.abs(q.difficulty - target));
+  const minDiff = Math.min(...difficulties);
+
+  const closestQuestions = questions.filter(
+    (q) => Math.abs(q.difficulty - target) === minDiff
+  );
+
+  // Randomly select from the closest questions
+  const randomIndex = Math.floor(Math.random() * closestQuestions.length);
+  return closestQuestions[randomIndex];
 }
 
 export async function getStartingQuestion(
   language: "en" | "l1"
 ): Promise<Question | null> {
-  return await getRandomQuestion(language, 2.5);
+  return await getRandomQuestion(language, 2.5, []);
 }
 
 export function generateSessionCode(): string {

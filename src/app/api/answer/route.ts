@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       ...doc.data(),
     })) as Response[];
 
+    const usedQuestionIds = responses.map((r) => r.questionId);
+
     const englishResponses = responses.filter(async (r) => {
       const qDoc = await adminDb
         .collection("questions")
@@ -76,7 +78,15 @@ export async function POST(request: NextRequest) {
     let completed = false;
 
     if (question.language === "en" && englishCount < 15) {
-      nextQuestion = await selectNextQuestion(question, isCorrect);
+      const usedEnglishIds = await getUsedQuestionIdsByLanguage(
+        responses,
+        "en"
+      );
+      nextQuestion = await selectNextQuestion(
+        question,
+        isCorrect,
+        usedEnglishIds
+      );
     } else if (
       question.language === "en" &&
       englishCount >= 15 &&
@@ -84,7 +94,8 @@ export async function POST(request: NextRequest) {
     ) {
       nextQuestion = await getStartingQuestion("l1");
     } else if (question.language === "l1" && l1Count < 3) {
-      nextQuestion = await selectNextQuestion(question, isCorrect);
+      const usedL1Ids = await getUsedQuestionIdsByLanguage(responses, "l1");
+      nextQuestion = await selectNextQuestion(question, isCorrect, usedL1Ids);
     } else {
       completed = true;
       await completeAttempt(studentId, attemptId, responses);
@@ -101,6 +112,26 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function getUsedQuestionIdsByLanguage(
+  responses: Response[],
+  language: "en" | "l1"
+): Promise<string[]> {
+  const usedIds: string[] = [];
+
+  for (const response of responses) {
+    const questionDoc = await adminDb
+      .collection("questions")
+      .doc(response.questionId)
+      .get();
+    const questionData = questionDoc.data();
+    if (questionData?.language === language) {
+      usedIds.push(response.questionId);
+    }
+  }
+
+  return usedIds;
 }
 
 async function countResponsesByLanguage(
