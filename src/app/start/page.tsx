@@ -41,9 +41,14 @@ export default function StartPage() {
       const studentDoc = await addDoc(collection(db, "students"), studentData);
       setStudentId(studentDoc.id);
 
+      // Get teacher name from URL params if available
+      const urlParams = new URLSearchParams(window.location.search);
+      const teacherName = urlParams.get("teacher") || "Unknown Teacher";
+
       const attemptData: Omit<Attempt, "id"> = {
         sessionCode,
         started: new Date(),
+        teacherName,
       };
 
       const attemptDoc = await addDoc(
@@ -192,7 +197,7 @@ export default function StartPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-black text-sm font-medium text-gray-700 mb-2">
                   Your Name
                 </label>
                 <input

@@ -34,6 +34,7 @@ export interface Attempt {
   gap?: number;
   colourBand?: "green" | "amber" | "red";
   summary?: string;
+  teacherName?: string;
 }
 
 export interface Response {
