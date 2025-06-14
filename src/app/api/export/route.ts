@@ -14,10 +14,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const studentsSnapshot = await adminDb.collection("students").get();
     const csvRows = [
       "Name,Year Group,Home Language,English Score,L1 Score,Gap,Colour Band,Summary",
     ];
+
+    const studentsSnapshot = await adminDb.collection("students").get();
 
     for (const studentDoc of studentsSnapshot.docs) {
       const student = { id: studentDoc.id, ...studentDoc.data() } as Student;
@@ -27,24 +28,25 @@ export async function GET(request: NextRequest) {
         .doc(studentDoc.id)
         .collection("attempts")
         .where("sessionCode", "==", code)
-        .where("completed", "!=", null)
         .get();
 
       for (const attemptDoc of attemptsSnapshot.docs) {
         const attempt = { id: attemptDoc.id, ...attemptDoc.data() } as Attempt;
 
-        const row = [
-          `"${student.name}"`,
-          `"${student.yearGroup}"`,
-          `"${student.homeLanguage}"`,
-          attempt.englishScore?.toString() || "0",
-          attempt.l1Score?.toString() || "0",
-          attempt.gap?.toString() || "0",
-          `"${attempt.colourBand || "unknown"}"`,
-          `"${attempt.summary || ""}"`,
-        ].join(",");
+        if (attempt.completed) {
+          const row = [
+            `"${student.name}"`,
+            `"${student.yearGroup}"`,
+            `"${student.homeLanguage}"`,
+            attempt.englishScore?.toString() || "0",
+            attempt.l1Score?.toString() || "0",
+            attempt.gap?.toString() || "0",
+            `"${attempt.colourBand || "unknown"}"`,
+            `"${attempt.summary || ""}"`,
+          ].join(",");
 
-        csvRows.push(row);
+          csvRows.push(row);
+        }
       }
     }
 
