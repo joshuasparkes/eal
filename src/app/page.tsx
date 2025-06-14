@@ -19,7 +19,7 @@ export default function Home() {
               For Teachers
             </h2>
             <p className="text-gray-600 mb-4">
-              Create assessment sessions and monitor student progress in
+              Create assessment areas and monitor student progress in
               real-time.
             </p>
             <Link

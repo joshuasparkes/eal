@@ -211,7 +211,7 @@ export default function TeacherPage() {
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
-              View Existing Sessions
+              View Existing Assessment Areas
             </button>
             <button
               onClick={() => setMode("new")}
@@ -221,7 +221,7 @@ export default function TeacherPage() {
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
-              Create New Session
+              Create New Assessment Area
             </button>
           </div>
 
@@ -266,7 +266,7 @@ export default function TeacherPage() {
               {selectedTeacher && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Sessions for {selectedTeacher}
+                    Assessment Areas for {selectedTeacher}
                   </h3>
 
                   {loadingSessions ? (
@@ -345,12 +345,12 @@ export default function TeacherPage() {
               >
                 {loading
                   ? "Creating Session..."
-                  : "Create New Baseline Session"}
+                  : "Create New Assessment Area"}
               </button>
 
               <div className="mt-6 text-sm text-gray-600">
                 <p>
-                  Click &quot;Create New Baseline Session&quot; to generate a
+                  Click &quot;Create New Assessment Area&quot; to generate a
                   6-digit code that students can use to join the assessment.
                 </p>
               </div>

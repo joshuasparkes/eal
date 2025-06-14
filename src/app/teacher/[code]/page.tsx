@@ -96,7 +96,7 @@ export default function TeacherDashboard() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Session Dashboard
+                Assessment Dashboard
               </h1>
               <p className="text-gray-600">
                 Session Code:{" "}
