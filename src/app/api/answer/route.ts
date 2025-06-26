@@ -216,13 +216,19 @@ async function completeAttempt(
 
       if (questionData.language === "en") {
         englishResults.push(result);
-      } else if (questionData.language === "l1") {
+      } else if (questionData.language !== "en") {
+        // Any non-English language is considered L1
         l1Results.push(result);
       }
     }
   }
 
+  console.log("English results:", englishResults);
+  console.log("L1 results:", l1Results);
+
   const scores = await scoreAttempt(englishResults, l1Results);
+
+  console.log("Scores from GPT:", scores);
 
   const gap = scores.l1Score - scores.englishScore;
   let colourBand: "green" | "amber" | "red" = "green";
